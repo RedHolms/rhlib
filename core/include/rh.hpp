@@ -15,49 +15,43 @@
 # error Invalid compiler
 #endif
 
-#define _RHLIB_             rh
-#define _RHLIB              ::_RHLIB_::
-#define _RHLIB_BEGIN        namespace _RHLIB_ {
+#define _RHLIB_BEGIN        namespace rh {
 #define _RHLIB_END          }
 
-#define _RHLIBH_            _Hidden
-#define _RHLIBH             ::_RHLIB_::_RHLIBH_::
-#define _RHLIB_HIDDEN_BEGIN namespace _RHLIBH_ {
+#define _RHLIBH             ::rh::_Hidden::
+#define _RHLIB_HIDDEN_BEGIN namespace _Hidden {
 #define _RHLIB_HIDDEN_END   }
 
 #ifndef _RHLIB_NO_GLOBALS
-# define _RHLIB_GLOBAL_CLASS(clazz)  using _RHLIB clazz;
-# define _RHLIB_GLOBAL_NS(ns)        namespace ns = _RHLIB ns;
+# define _RHLIB_GLOBAL_CLASS(clazz)  using rh::clazz;
+# define _RHLIB_GLOBAL_NS(ns)        namespace ns = rh::ns;
 #else
 # define _RHLIB_GLOBAL_CLASS(...)
 # define _RHLIB_GLOBAL_NS(...)
 #endif
 
 #define _RHLIB_NODISCARD [[nodiscard]]
+#define _RHLIB_ALLOCATOR __declspec(allocator)
+#define _RHLIB_UNUSED(v) [](...){}(v)
 
 #define _RHLIB_API extern
 
-#define _RHLIB_OS_WINDOWS     0
-#define _RHLIB_OS_GNU_LINUX   1
-#define _RHLIB_OS_UNSUPPORTED -1
+#define _RHLIB_OS_UNSUPPORTED 0
+#define _RHLIB_OS_WINDOWS     1
 
 #if defined(_WIN32)
 # define _RHLIB_OS _RHLIB_OS_WINDOWS
-#elif defined(__gnu_linux__)
-# define _RHLIB_OS _RHLIB_OS_GNU_LINUX
 #else
 # define _RHLIB_OS _RHLIB_OS_UNSUPPORTED
 #endif
 
 _RHLIB_BEGIN
 
-enum OSType {
-  OS_WINDOWS     = _RHLIB_OS_WINDOWS,
-  OS_GNU_LINUX   = _RHLIB_OS_GNU_LINUX,
-  OS_UNSUPPORTED = _RHLIB_OS_UNSUPPORTED
-};
+enum class OSType {};
 
-static constexpr OSType OS = static_cast<OSType>(_RHLIB_OS);
+static constexpr OSType OS_UNSUPPORTED = static_cast<OSType>(_RHLIB_OS_UNSUPPORTED);
+static constexpr OSType OS_WINDOWS     = static_cast<OSType>(_RHLIB_OS_WINDOWS);
+static constexpr OSType OS             = static_cast<OSType>(_RHLIB_OS);
 
 template <typename T>
 struct type_wrapper {
@@ -145,74 +139,25 @@ _RHLIB_HIDDEN_END
 template <bool Condition>
 using enable_if = unwrap_type<_RHLIBH enable_if_wrapper<Condition>>;
 
-_RHLIB_HIDDEN_BEGIN
+using int8_t    = signed char;
+using uint8_t   = unsigned char;
+using int16_t   = signed short;
+using uint16_t  = unsigned short;
+using int32_t   = signed int;
+using uint32_t  = unsigned int;
+using int64_t   = signed long long;
+using uint64_t  = unsigned long long;
 
-template <int Size, typename... Candidates>
-struct find_type_with_size_wrapper;
-
-template <int Size, typename T, typename... Other>
-struct find_type_with_size_wrapper<Size, T, Other...> {
-  using next = find_type_with_size_wrapper<Size, Other...>;
-  using type = typename conditional_wrapper<sizeof(T) == Size, T, typename next::type>::type;
-};
-
-template <int Size>
-struct find_type_with_size_wrapper<Size> {
-  using type = void;
-};
-
-_RHLIB_HIDDEN_END
-
-template <int Size, typename... Candidates>
-using find_type_with_size = typename _RHLIBH find_type_with_size_wrapper<Size, Candidates...>::type;
-
-template <int Size>
-using find_signed_integral_type_with_size = find_type_with_size<
-  Size,
-  signed char,
-  signed short,
-  signed int,
-  signed long,
-  signed long long
->;
-
-template <int Size>
-using find_unsigned_integral_type_with_size = find_type_with_size<
-  Size,
-  unsigned char,
-  unsigned short,
-  unsigned int,
-  unsigned long,
-  unsigned long long
->;
-
-using int8_t    = find_signed_integral_type_with_size<1>;
-using uint8_t   = find_unsigned_integral_type_with_size<1>;
-using int16_t   = find_signed_integral_type_with_size<2>;
-using uint16_t  = find_unsigned_integral_type_with_size<2>;
-using int32_t   = find_signed_integral_type_with_size<4>;
-using uint32_t  = find_unsigned_integral_type_with_size<4>;
-using int64_t   = find_signed_integral_type_with_size<8>;
-using uint64_t  = find_unsigned_integral_type_with_size<8>;
-using uintptr_t = find_unsigned_integral_type_with_size<sizeof(void*)>;
-using intptr_t  = find_signed_integral_type_with_size<sizeof(void*)>;
-
-static_assert(!is_same_type<int8_t, void>, "Can't find valid type to use as int8_t");
-static_assert(!is_same_type<uint8_t, void>, "Can't find valid type to use as uint8_t");
-static_assert(!is_same_type<int16_t, void>, "Can't find valid type to use as int16_t");
-static_assert(!is_same_type<uint16_t, void>, "Can't find valid type to use as uint16_t");
-static_assert(!is_same_type<int32_t, void>, "Can't find valid type to use as int32_t");
-static_assert(!is_same_type<uint32_t, void>, "Can't find valid type to use as uint32_t");
-static_assert(!is_same_type<int64_t, void>, "Can't find valid type to use as int64_t");
-static_assert(!is_same_type<uint64_t, void>, "Can't find valid type to use as uint64_t");
-static_assert(!is_same_type<uintptr_t, void>, "Can't find valid type to use as uintptr_t");
-static_assert(!is_same_type<intptr_t, void>, "Can't find valid type to use as intptr_t");
+using uintptr_t = conditional<sizeof(void*) == 8, uint64_t, uint32_t>;
+using intptr_t  = conditional<sizeof(void*) == 8, int64_t, int32_t>;
 
 using size_t    = decltype(sizeof(int));
-using ptrdiff_t = intptr_t;
+using ssize_t   = conditional<sizeof(size_t) == 8, int64_t, int32_t>;
+using ptrdiff_t = decltype(((int*)0) - ((int*)0));
+using nullptr_t = decltype(nullptr);
+
 using byte_t    = uint8_t;
 using uchar_t   = char32_t;
-using nullptr_t = decltype(nullptr);
 
 template <typename T>
 using underlying_type = __underlying_type(T);
@@ -276,16 +221,6 @@ constexpr auto move(T&& arg) noexcept {
   return static_cast<remove_reference<T>&&>(arg);
 }
 
-template <typename T, typename... ArgsT>
-constexpr void construct_at(T* object, ArgsT&&... args) {
-  new (object) T (forward<ArgsT>(args)...);
-}
-
-template <typename T>
-constexpr void destruct_at(T* object) {
-  object->~T();
-}
-
 template <typename InIt1, typename InIt2, typename OutIt>
 constexpr void copy(OutIt dest, InIt1 begin, InIt2 end) {
   for (auto it = begin; it != end; ++it, ++dest)
@@ -335,7 +270,7 @@ _RHLIB_HIDDEN_BEGIN
 template <typename T>
 struct flag_enum_class_wrapper {
   using type = T;
-  using underlying_type = _RHLIB underlying_type<T>;
+  using underlying_type = underlying_type<T>;
 
   underlying_type value;
 
@@ -360,22 +295,131 @@ struct flag_enum_class_wrapper {
 
 _RHLIB_HIDDEN_END
 
+// Just like a std::launder
+template <typename T>
+_RHLIB_NODISCARD
+constexpr T* launder(T* pointer) noexcept {
+  return __builtin_launder(pointer);
+}
+
+_RHLIB_HIDDEN_BEGIN
+
+template <class Owner, size_t Size>
+struct pimpl {
+  using data_type = typename Owner::Data;
+
+  static_assert(Size > 0, "Invalid PIMPL size");
+
+  byte_t storage[Size];
+
+  template <typename... ArgsT>
+  inline pimpl(ArgsT&&... args) {
+    static_assert(sizeof(data_type) == Size, "Invalid PIMPL size");
+    construct_at<data_type>((data_type*)storage, forward<ArgsT>(args)...);
+  }
+
+  inline ~pimpl() {
+    static_assert(sizeof(data_type) == Size, "Invalid PIMPL size");
+    destruct_at<data_type>((data_type*)storage);
+  }
+
+  inline data_type* operator->() noexcept {
+    return (data_type*)storage;
+  }
+  
+  inline data_type const* operator->() const noexcept {
+    return (data_type const*)storage;
+  }
+};
+
+_RHLIB_HIDDEN_END
+
+#define _RHLIB_DEFINE_PIMPL(size_expr)                      \
+  static constexpr ::rh::size_t _PimplDataSize = size_expr; \
+  struct Data;                                              \
+  friend _RHLIBH pimpl<type, _PimplDataSize>;               \
+  _RHLIBH pimpl<type, _PimplDataSize> m
+
 _RHLIB_END
 
-template <typename T, typename = _RHLIB enable_if<_RHLIB is_flag_type<T>>>
+template <typename T, typename = rh::enable_if<rh::is_flag_type<T>>>
 constexpr T operator|(T left, T right) noexcept {
-  using underlying_type = _RHLIB underlying_type<T>;
+  using underlying_type = rh::underlying_type<T>;
   return T(static_cast<underlying_type>(left) | static_cast<underlying_type>(right));
 }
 
-template <typename T, typename = _RHLIB enable_if<_RHLIB is_flag_type<T>>>
+template <typename T, typename = rh::enable_if<rh::is_flag_type<T>>>
 constexpr auto operator&(T left, T right) noexcept {
-  using underlying_type = _RHLIB underlying_type<T>;
+  using underlying_type = rh::underlying_type<T>;
   return _RHLIBH flag_enum_class_wrapper<T>(static_cast<underlying_type>(left) & static_cast<underlying_type>(right));
 }
 
-template <typename T, typename = _RHLIB enable_if<_RHLIB is_flag_type<T>>>
+template <typename T, typename = rh::enable_if<rh::is_flag_type<T>>>
 constexpr T operator~(T left) noexcept {
-  using underlying_type = _RHLIB underlying_type<T>;
+  using underlying_type = rh::underlying_type<T>;
   return T(~static_cast<underlying_type>(left));
 }
+
+#ifndef __NOTHROW_T_DEFINED
+#define __NOTHROW_T_DEFINED
+namespace std {
+
+struct nothrow_t {
+  explicit nothrow_t() = default;
+};
+
+extern nothrow_t const nothrow;
+
+} // namespace std
+#endif
+
+_RHLIB_NODISCARD _RHLIB_ALLOCATOR
+void* __cdecl operator new(size_t size);
+_RHLIB_NODISCARD _RHLIB_ALLOCATOR
+void* __cdecl operator new(size_t size, std::nothrow_t const&) noexcept;
+_RHLIB_NODISCARD _RHLIB_ALLOCATOR
+void* __cdecl operator new[](size_t size);
+_RHLIB_NODISCARD _RHLIB_ALLOCATOR
+void* __cdecl operator new[](size_t size, std::nothrow_t const&) noexcept;
+void __cdecl operator delete(void* block) noexcept;
+void __cdecl operator delete(void* block, std::nothrow_t const&) noexcept;
+void __cdecl operator delete[](void* block) noexcept;
+void __cdecl operator delete[](void* block, std::nothrow_t const&) noexcept;
+void __cdecl operator delete(void* block, rh::size_t size) noexcept;
+void __cdecl operator delete[](void* block, rh::size_t size) noexcept;
+
+#ifndef __PLACEMENT_NEW_INLINE
+#define __PLACEMENT_NEW_INLINE
+
+inline void* __cdecl operator new(size_t size, void* where) noexcept {
+  _RHLIB_UNUSED(size);
+  return where;
+}
+inline void __cdecl operator delete(void*, void*) noexcept {}
+
+#endif
+
+#ifndef __PLACEMENT_VEC_NEW_INLINE
+#define __PLACEMENT_VEC_NEW_INLINE
+
+inline void* __cdecl operator new[](size_t size, void* where) noexcept {
+  _RHLIB_UNUSED(size);
+  return where;
+}
+inline void __cdecl operator delete[](void*, void*) noexcept {}
+
+#endif
+
+_RHLIB_BEGIN
+
+template <typename T, typename... ArgsT>
+constexpr void construct_at(T* object, ArgsT&&... args) {
+  new (object) T (forward<ArgsT>(args)...);
+}
+
+template <typename T>
+constexpr void destruct_at(T* object) {
+  object->~T();
+}
+
+_RHLIB_END

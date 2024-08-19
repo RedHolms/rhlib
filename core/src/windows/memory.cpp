@@ -2,8 +2,11 @@
 
 #include <Windows.h>
 
-memory::access win32access_to_rh(DWORD win32access) {
-  using memory::access;
+namespace memory = rh::memory;
+
+memory::Access win32access_to_rh(DWORD win32access) {
+  RTL_CRITICAL_SECTION a;
+  using memory::Access;
 
   switch (win32access & 0xFF) {
     case PAGE_NOACCESS:
@@ -24,8 +27,8 @@ memory::access win32access_to_rh(DWORD win32access) {
   }
 }
 
-DWORD rhaccess_to_win32(memory::access rhaccess) {
-  using memory::access;
+DWORD rhaccess_to_win32(memory::Access rhaccess) {
+  using memory::Access;
 
   if (rhaccess == access::none)
     return PAGE_NOACCESS;
@@ -51,7 +54,7 @@ DWORD rhaccess_to_win32(memory::access rhaccess) {
   return PAGE_NOACCESS;
 }
 
-memory::access memory::get_access(generic_const_pointer address, size_t bytes_count) {
+memory::Access memory::get_access(GenericConstPointer address, size_t bytes_count) {
   DWORD win32access, dummy;
   VirtualProtect(address, bytes_count, PAGE_NOACCESS, &win32access);
   VirtualProtect(address, bytes_count, win32access, &dummy);
@@ -59,7 +62,7 @@ memory::access memory::get_access(generic_const_pointer address, size_t bytes_co
   return win32access_to_rh(win32access);
 }
 
-void memory::set_access(access value, generic_const_pointer address, size_t bytes_count) {
+void memory::set_access(Access value, GenericConstPointer address, size_t bytes_count) {
   DWORD dummy;
   VirtualProtect(address, bytes_count, rhaccess_to_win32(value), &dummy);
 }

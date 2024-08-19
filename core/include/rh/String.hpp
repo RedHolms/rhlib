@@ -10,8 +10,9 @@ class String;
 
 _RHLIB_HIDDEN_BEGIN
 
-struct string_utils {
+struct StringUtils {
   using size_type = size_t;
+  using ssize_type = ssize_t;
 
   template <typename CharT, typename = enable_if<is_char_type<CharT>>>
   static constexpr size_type length(const CharT* string) {
@@ -24,7 +25,7 @@ struct string_utils {
   }
 
   template <typename CharT, typename = enable_if<is_char_type<CharT>>>
-  static constexpr bool is_substr_equal(const CharT* string, size_type index, const CharT* sub_string, size_type sub_string_length) noexcept {
+  static constexpr bool isSubStringEqual(const CharT* string, size_type index, const CharT* sub_string, size_type sub_string_length) noexcept {
     for (
       size_type string_index = 0;
       string_index < sub_string_length;
@@ -36,126 +37,202 @@ struct string_utils {
 
     return true;
   }
+
+  template <typename CharT, typename = enable_if<is_char_type<CharT>>>
+  static constexpr ssize_type find(
+    const CharT* string, size_type string_length,
+    const CharT* sub_string, size_type sub_string_length
+  ) noexcept {
+    if (sub_string_length == string_length)
+      return isSubStringEqual(string, 0, string, sub_string_length) ? 0 : -1;
+    else if (sub_string_length > string_length)
+      return -1;
+
+    for (size_type search_end = string_length - sub_string_length, base_index = 0; base_index < search_end; ++base_index) {
+      if (isSubStringEqual(string, base_index, string, sub_string_length))
+        return base_index;
+    }
+
+    return -1;
+  }
+
+  template <typename CharT, typename = enable_if<is_char_type<CharT>>>
+  static constexpr ssize_type find(
+    const CharT* string, size_type string_length,
+    CharT character
+  ) noexcept {
+    for (size_type index = 0; index < string_length; ++index) {
+      if (string[index] == character)
+        return index;
+    }
+
+    return -1;
+  }
 };
 
 _RHLIB_HIDDEN_END
 
 class StringView {
 public:
+  using type = StringView;
+
   using char_type = uchar_t;
   using size_type = size_t;
+  using ssize_type = ssize_t;
 
 public:
-  constexpr StringView() = default;
+  constexpr StringView() noexcept = default;
 
-  constexpr StringView(const uchar_t* string)
+  constexpr StringView(const uchar_t* string) noexcept
     : m_string(string) {}
 
+  constexpr StringView(StringView const& other) noexcept
+    : m_string(other.m_string) {}
+    
+  constexpr StringView(StringView&& other) noexcept
+    : m_string(other.m_string)
+  {
+    other.m_string = U"";
+  }
+
+  constexpr StringView& operator=(StringView const& other) {
+    m_string = other.m_string;
+    return *this;
+  }
+
+  constexpr StringView& operator=(StringView&& other) noexcept {
+    m_string = other.m_string;
+    other.m_string = U"";
+    return *this;
+  }
+
 public:
-  constexpr char_type front() const noexcept {
-    return m_string[0];
+  constexpr operator const char_type*() const noexcept {
+    return m_string;
   }
 
-  constexpr char_type back() const noexcept {
-    return m_string[length() - 1];
-  }
-
+public:
+  _RHLIB_NODISCARD
   constexpr const char_type* data() const noexcept {
     return m_string;
   }
 
+  _RHLIB_NODISCARD
   constexpr const char_type* begin() const noexcept {
     return m_string;
   }
 
+  _RHLIB_NODISCARD
   constexpr const char_type* end() const noexcept {
     return m_string + length();
   }
 
+  _RHLIB_NODISCARD
   constexpr bool is_empty() const noexcept {
     return m_string ? !m_string[0] : true;
   }
 
+  _RHLIB_NODISCARD
   constexpr size_type length() const noexcept {
-    return m_string ? _RHLIBH string_utils::length(m_string) : 0;
+    return m_string ? _RHLIBH StringUtils::length(m_string) : 0;
   }
 
-  constexpr bool starts_with(const char_type* string, size_type string_length) const noexcept {
+  _RHLIB_NODISCARD
+  constexpr bool startsWith(const char_type* string, size_type string_length) const noexcept {
     if (string_length > length())
       return false;
 
-    return _RHLIBH string_utils::is_substr_equal(m_string, 0, string, string_length);
+    return _RHLIBH StringUtils::isSubStringEqual(m_string, 0, string, string_length);
   }
 
-  constexpr bool starts_with(StringView string) const noexcept {
-    return starts_with(string.data(), string.length());
+  _RHLIB_NODISCARD
+  constexpr bool startsWith(StringView string) const noexcept {
+    return startsWith(string.data(), string.length());
   }
 
-  constexpr bool ends_with(const char_type* string, size_type string_length) const noexcept {
+  _RHLIB_NODISCARD
+  constexpr bool endsWith(const char_type* string, size_type string_length) const noexcept {
     size_type length = this->length();
 
     if (string_length > length)
       return false;
 
-    return _RHLIBH string_utils::is_substr_equal(m_string, length - string_length, string, string_length);
+    return _RHLIBH StringUtils::isSubStringEqual(m_string, length - string_length, string, string_length);
   }
 
-  constexpr bool ends_with(StringView string) const noexcept {
-    return ends_with(string.data(), string.length());
+  _RHLIB_NODISCARD
+  constexpr bool endsWith(StringView string) const noexcept {
+    return endsWith(string.data(), string.length());
+  }
+  
+  _RHLIB_NODISCARD
+  constexpr ssize_type find(const char_type* string, size_type string_length) const noexcept {
+    return _RHLIBH StringUtils::find(m_string, length(), string, string_length);
+  }
+  
+  _RHLIB_NODISCARD
+  constexpr ssize_type find(char_type character) const noexcept {
+    return _RHLIBH StringUtils::find(m_string, length(), character);
   }
 
+  _RHLIB_NODISCARD
+  constexpr ssize_type find(StringView string) const noexcept {
+    return find(string.data(), string.length());
+  }
+
+  _RHLIB_NODISCARD
   constexpr bool contains(const char_type* string, size_type string_length) const noexcept {
-    size_type length = this->length();
-
-    if (string_length == length)
-      return _RHLIBH string_utils::is_substr_equal(m_string, 0, string, string_length);
-    else if (string_length > length)
-      return false;
-
-    for (size_type search_end = length - string_length, base_index = 0; base_index < search_end; ++base_index) {
-      if (_RHLIBH string_utils::is_substr_equal(m_string, base_index, string, string_length))
-        return true;
-    }
-
-    return false;
+    return find(string, string_length) != -1;
   }
 
+  _RHLIB_NODISCARD
+  constexpr bool contains(char_type character) const noexcept {
+    return find(character) != -1;
+  }
+
+  _RHLIB_NODISCARD
   constexpr bool contains(StringView string) const noexcept {
     return contains(string.data(), string.length());
   }
 
 public:
+  _RHLIB_NODISCARD
   constexpr bool operator==(StringView string) const noexcept {
-    return _RHLIBH string_utils::is_substr_equal(m_string, 0, string.data(), string.length());
+    return _RHLIBH StringUtils::isSubStringEqual(m_string, 0, string.data(), string.length());
   }
 
+  _RHLIB_NODISCARD
   constexpr bool operator!=(StringView string) const noexcept {
     return !operator==(string);
   }
 
+  _RHLIB_NODISCARD
   constexpr char_type operator[](size_type index) const noexcept {
     return m_string[index];
   }
 
 private:
-  const uchar_t* m_string;
+  const uchar_t* m_string = U"";
 };
 
 class String {
 public:
+  using type = String;
+
   using char_type = uchar_t;
   using size_type = size_t;
+  using ssize_type = ssize_t;
 
 public:
-  constexpr String() = default;
+  constexpr String() noexcept = default;
 
-  constexpr String(const char_type* string)
-    : String(string, _RHLIBH string_utils::length(string)) {}
+  constexpr String(StringView string)
+    : String(string.data(), string.length()) {}
 
   constexpr String(const char_type* string, size_type string_length_in_chars)
     : String()
   {
-    _need_allocated(string_length_in_chars + 1);
+    _needAllocated(string_length_in_chars + 1);
 
     for (size_type index = 0; index < string_length_in_chars; ++index)
       m_buffer[index] = string[index];
@@ -166,27 +243,32 @@ public:
   constexpr String(size_type count, char_type character = 0)
     : String()
   {
-    _need_allocated(count);
+    _needAllocated(count);
 
     for (size_type i = 0; i < count; ++i)
       m_buffer[i] = character;
   }
 
-  constexpr String(String const& other) : String() {
+  constexpr String(String const& other) noexcept : String() {
     operator=(other);
   }
 
   constexpr String(String&& other) noexcept {
-    _steal_contents(other);
+    _stealOther(other);
   }
 
   constexpr String& operator=(String const& other) {
+    *this = StringView{other};
+    return *this;
+  }
+
+  constexpr String& operator=(StringView other) {
     size_type length = other.length();
 
-    _need_allocated(length + 1);
+    _needAllocated(length + 1);
 
     for (size_type i = 0; i < length; ++i)
-      m_buffer[i] = other.m_buffer[i];
+      m_buffer[i] = other[i];
 
     m_buffer[length] = 0;
 
@@ -195,7 +277,7 @@ public:
 
   constexpr String& operator=(String&& other) noexcept {
     String::~String();
-    _steal_contents(other);
+    _stealOther(other);
     return *this;
   }
 
@@ -206,6 +288,10 @@ public:
 public:
   constexpr operator StringView() const noexcept {
     return StringView(m_buffer);
+  }
+
+  constexpr operator const char_type*() const noexcept {
+    return m_buffer;
   }
 
 public:
@@ -238,18 +324,18 @@ public:
   }
 
   constexpr size_type length() const noexcept {
-    return m_buffer ? _RHLIBH string_utils::length(m_buffer) : 0;
+    return m_buffer ? _RHLIBH StringUtils::length(m_buffer) : 0;
   }
 
   constexpr void reserve(size_type count) {
-    _need_allocated(count);
+    _needAllocated(count);
   }
 
   constexpr size_type capacity() const noexcept {
     return m_allocated;
   }
 
-  constexpr void shrink_to_fit() {
+  constexpr void shrinkToFit() {
     size_type minimal = length() + 1;
     if (m_allocated > minimal)
       _reallocate(minimal);
@@ -263,8 +349,8 @@ public:
   constexpr String& insert(size_type index, size_type count, char_type character) {
     size_type length = this->length();
 
-    _need_allocated(length + count + 1);
-    _move_right(index, length - index, count);
+    _needAllocated(length + count + 1);
+    _moveRight(index, length - index, count);
 
     for (size_type i = 0; i < count; ++i, ++index)
       m_buffer[index] = character;
@@ -282,8 +368,8 @@ public:
   constexpr String& insert(size_type index, const char_type* string, size_type string_length) {
     size_type length = this->length();
 
-    _need_allocated(length + string_length + 1);
-    _move_right(index, length - index, string_length);
+    _needAllocated(length + string_length + 1);
+    _moveRight(index, length - index, string_length);
 
     for (size_type i = 0; i < string_length; ++i, ++index)
       m_buffer[index] = string[i];
@@ -307,7 +393,7 @@ public:
     if (index + count > length)
       return *this;
 
-    _move_left(index + count, length - (index + count), count);
+    _moveLeft(index + count, length - (index + count), count);
 
     length -= count;
     m_buffer[length] = 0;
@@ -318,7 +404,7 @@ public:
   constexpr String& append(size_type count, char_type character) {
     size_type length = this->length();
 
-    _need_allocated(length + count + 1);
+    _needAllocated(length + count + 1);
 
     for (size_type counter = 0, index = length; counter < count; ++counter, ++index)
       m_buffer[index] = character;
@@ -336,7 +422,7 @@ public:
   constexpr String& append(const char_type* string, size_type string_length_in_characters) {
     size_type length = this->length();
 
-    _need_allocated(length + string_length_in_characters + 1);
+    _needAllocated(length + string_length_in_characters + 1);
 
     for (size_type i = 0, index = length; i < string_length_in_characters; ++i, ++index)
       m_buffer[index] = string[i];
@@ -347,20 +433,20 @@ public:
     return *this;
   }
 
-  constexpr String& append(StringView string) {
+  constexpr String& append(StringView string) noexcept {
     return append(string.data(), string.length());
   }
 
-  constexpr void push_back(char_type character) noexcept {
+  constexpr void push(char_type character) {
     size_type length = this->length();
 
-    _need_allocated(length + 1 + 1);
+    _needAllocated(length + 1 + 1);
 
     m_buffer[length] = character;
     m_buffer[length + 1] = 0;
   }
 
-  constexpr char_type pop_back() noexcept {
+  constexpr char_type pop() noexcept {
     size_type length = this->length();
 
     if (length == 0)
@@ -372,44 +458,48 @@ public:
     return character;
   }
 
-  constexpr bool starts_with(const char_type* string, size_type string_length) const noexcept {
+  constexpr bool startsWith(const char_type* string, size_type string_length) const noexcept {
     if (string_length > length())
       return false;
 
-    return _RHLIBH string_utils::is_substr_equal(m_buffer, 0, string, string_length);
+    return _RHLIBH StringUtils::isSubStringEqual(m_buffer, 0, string, string_length);
   }
 
-  constexpr bool starts_with(StringView string) const noexcept {
-    return starts_with(string.data(), string.length());
+  constexpr bool startsWith(StringView string) const noexcept {
+    return startsWith(string.data(), string.length());
   }
 
-  constexpr bool ends_with(const char_type* string, size_type string_length) const noexcept {
+  constexpr bool endsWith(const char_type* string, size_type string_length) const noexcept {
     size_type length = this->length();
 
     if (string_length > length)
       return false;
 
-    return _RHLIBH string_utils::is_substr_equal(m_buffer, length - string_length, string, string_length);
+    return _RHLIBH StringUtils::isSubStringEqual(m_buffer, length - string_length, string, string_length);
   }
 
-  constexpr bool ends_with(StringView string) const noexcept {
-    return ends_with(string.data(), string.length());
+  constexpr bool endsWith(StringView string) const noexcept {
+    return endsWith(string.data(), string.length());
+  }
+  
+  constexpr ssize_type find(const char_type* string, size_type string_length) const noexcept {
+    return _RHLIBH StringUtils::find(m_buffer, length(), string, string_length);
+  }
+  
+  constexpr ssize_type find(char_type character) const noexcept {
+    return _RHLIBH StringUtils::find(m_buffer, length(), character);
+  }
+
+  constexpr ssize_type find(StringView string) const noexcept {
+    return find(string.data(), string.length());
   }
 
   constexpr bool contains(const char_type* string, size_type string_length) const noexcept {
-    size_type length = this->length();
+    return find(string, string_length) != -1;
+  }
 
-    if (string_length == length)
-      return _RHLIBH string_utils::is_substr_equal(m_buffer, 0, string, string_length);
-    else if (string_length > length)
-      return false;
-
-    for (size_type search_end = length - string_length, base_index = 0; base_index < search_end; ++base_index) {
-      if (_RHLIBH string_utils::is_substr_equal(m_buffer, base_index, string, string_length))
-        return true;
-    }
-
-    return false;
+  constexpr bool contains(char_type character) const noexcept {
+    return find(character) != -1;
   }
 
   constexpr bool contains(StringView string) const noexcept {
@@ -418,7 +508,7 @@ public:
 
 public:
   constexpr bool operator==(StringView string) const noexcept {
-    return _RHLIBH string_utils::is_substr_equal(m_buffer, 0, string.data(), string.length());
+    return _RHLIBH StringUtils::isSubStringEqual(m_buffer, 0, string.data(), string.length());
   }
 
   constexpr bool operator!=(StringView string) const noexcept {
@@ -434,14 +524,14 @@ public:
   }
 
 private:
-  constexpr void _steal_contents(String& other) noexcept {
+  constexpr void _stealOther(String& other) noexcept {
     m_buffer = other.m_buffer;
     m_allocated = other.m_allocated;
     other.m_buffer = nullptr;
     other.m_allocated = 0;
   }
 
-  constexpr void _need_allocated(size_type size) {
+  constexpr void _needAllocated(size_type size) {
     if (m_allocated < size)
       _grow(size);
   }
@@ -478,7 +568,7 @@ private:
       delete[] prev_buffer;
   }
 
-  constexpr void _move_right(size_type index, size_type count, size_type amount) noexcept {
+  constexpr void _moveRight(size_type index, size_type count, size_type amount) noexcept {
     char_type* rbegin = m_buffer + index + count - 1;
     char_type* rend = m_buffer + index - 1;
 
@@ -486,7 +576,7 @@ private:
       it[amount] = it[0];
   }
 
-  constexpr void _move_left(size_type index, size_type count, int amount) noexcept {
+  constexpr void _moveLeft(size_type index, size_type count, int amount) noexcept {
     char_type* begin = m_buffer + index;
     char_type* end = m_buffer + index + count;
 

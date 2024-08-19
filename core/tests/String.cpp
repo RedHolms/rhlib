@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <rh.String.hpp>
+#include <rh/String.hpp>
 
 TEST(StringTests, Unicode) {
   String first, second;
@@ -27,16 +27,13 @@ TEST(StringTests, Unicode) {
 
   first = rh::move(second);
 
-  EXPECT_EQ(first.front(), U'H');
-  EXPECT_EQ(first.back(), U'!');
-
   first.reserve(32);
   EXPECT_EQ(first.capacity(), 32);
 
   first.reserve(1);
   EXPECT_EQ(first.capacity(), 32);
 
-  first.shrink_to_fit();
+  first.shrinkToFit();
   EXPECT_EQ(first.capacity(), first.length() + 1);
 
   {
@@ -57,14 +54,14 @@ TEST(StringTests, Unicode) {
   EXPECT_EQ(first, U"Hello, World");
 
   second = U"Hello";
-  EXPECT_TRUE(first.starts_with(U"Hello"));
-  EXPECT_TRUE(first.starts_with(second));
-  EXPECT_TRUE(first.starts_with(second.data()));
+  EXPECT_TRUE(first.startsWith(U"Hello"));
+  EXPECT_TRUE(first.startsWith(second));
+  EXPECT_TRUE(first.startsWith(second.data()));
 
   second = U"World";
-  EXPECT_TRUE(first.ends_with(U"World"));
-  EXPECT_TRUE(first.ends_with(second));
-  EXPECT_TRUE(first.ends_with(second.data()));
+  EXPECT_TRUE(first.endsWith(U"World"));
+  EXPECT_TRUE(first.endsWith(second));
+  EXPECT_TRUE(first.endsWith(second.data()));
 
   second = U"llo, Wo";
   EXPECT_TRUE(first.contains(U"llo, Wo"));

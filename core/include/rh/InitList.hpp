@@ -8,6 +8,8 @@ _RHLIB_BEGIN
 template <typename T>
 class InitList {
 public:
+  using type = InitList<T>;
+
   using value_type = T;
   using pointer    = T const*;
 
@@ -21,17 +23,17 @@ public:
 
 public:
   _RHLIB_NODISCARD
-  pointer begin() const noexcept {
+  constexpr pointer begin() const noexcept {
     return m_begin;
   }
   
   _RHLIB_NODISCARD
-  pointer end() const noexcept {
+  constexpr pointer end() const noexcept {
     return m_end;
   }
 
   _RHLIB_NODISCARD
-  size_type count() const noexcept {
+  constexpr size_type count() const noexcept {
     return static_cast<size_type>(m_end - m_begin);
   }
 

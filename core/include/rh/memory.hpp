@@ -5,19 +5,20 @@
 
 _RHLIB_BEGIN
 
-struct generic_const_pointer {
+struct GenericConstPointer {
   uintptr_t value = 0;
 
-  constexpr generic_const_pointer() noexcept = default;
+  constexpr GenericConstPointer() noexcept = default;
 
   template <typename T, typename = enable_if<is_integral_type<T>>>
-  constexpr generic_const_pointer(T value) noexcept
+  constexpr GenericConstPointer(T value) noexcept
     : value(static_cast<uintptr_t>(value)) {}
 
-  inline generic_const_pointer(void const* ptr) noexcept
+  inline GenericConstPointer(void const* ptr) noexcept
     : value(reinterpret_cast<uintptr_t>(ptr)) {}
 
   template <typename T>
+  _RHLIB_NODISCARD
   inline T const* get() const noexcept {
     return reinterpret_cast<T*>(value);
   }
@@ -34,12 +35,12 @@ struct generic_const_pointer {
     return reinterpret_cast<void*>(value);
   }
 
-  constexpr generic_const_pointer& operator++() noexcept {
+  constexpr GenericConstPointer& operator++() noexcept {
     ++value;
     return *this;
   }
 
-  constexpr generic_const_pointer& operator--() noexcept {
+  constexpr GenericConstPointer& operator--() noexcept {
     --value;
     return *this;
   }
@@ -53,13 +54,14 @@ struct generic_const_pointer {
   }
 };
 
-struct generic_pointer : public generic_const_pointer {
-  using generic_const_pointer::generic_const_pointer;
+struct GenericPointer : public GenericConstPointer {
+  using GenericConstPointer::GenericConstPointer;
 
-  inline generic_pointer(void* ptr) noexcept
-    : generic_const_pointer(reinterpret_cast<uintptr_t>(ptr)) {}
+  inline GenericPointer(void* ptr) noexcept
+    : GenericConstPointer(reinterpret_cast<uintptr_t>(ptr)) {}
 
   template <typename T>
+  _RHLIB_NODISCARD
   inline T* get() const noexcept {
     return reinterpret_cast<T*>(value);
   }
@@ -67,7 +69,7 @@ struct generic_pointer : public generic_const_pointer {
 
 namespace memory {
 
-enum class access : uint8_t {
+enum class Access : uint8_t {
   none    = 0,
   read    = 1 << 0,
   write   = 1 << 1,
@@ -78,59 +80,59 @@ enum class access : uint8_t {
 
 _RHLIB_NODISCARD
 _RHLIB_API
-access get_access(generic_const_pointer address, size_t bytes_count);
+Access getAccess(GenericConstPointer address, size_t bytes_count);
 
 _RHLIB_API
-void set_access(access value, generic_const_pointer address, size_t bytes_count);
+void setAccess(Access value, GenericConstPointer address, size_t bytes_count);
 
 } // namespace memory
 
 template <>
-static constexpr bool is_flag_type<memory::access> = true;
+static constexpr bool is_flag_type<memory::Access> = true;
 
 namespace memory {
 
-struct access_scope {
-  generic_const_pointer address;
-  size_t bytes_count;
-  access prev_access;
+struct AccessScope {
+  GenericConstPointer address;
+  size_t bytesCount;
+  Access prevAccess;
 
-  inline access_scope(access value, generic_const_pointer address, size_t bytes_count)
+  inline AccessScope(Access value, GenericConstPointer address, size_t bytes_count)
     : address(address),
-      bytes_count(bytes_count),
-      prev_access(get_access(address, bytes_count))
+      bytesCount(bytes_count),
+      prevAccess(getAccess(address, bytes_count))
   {
-    set_access(value, address, bytes_count);
+    setAccess(value, address, bytes_count);
   }
 
-  inline ~access_scope() {
-    set_access(prev_access, address, bytes_count);
+  inline ~AccessScope() {
+    setAccess(prevAccess, address, bytesCount);
   }
 };
 
-struct add_access_scope : access_scope {
-  inline add_access_scope(access value, generic_const_pointer address, size_t bytes_count)
-    : access_scope(
-      get_access(address, bytes_count) | value,
+struct AddAccessScope : AccessScope {
+  inline AddAccessScope(Access value, GenericConstPointer address, size_t bytes_count)
+    : AccessScope(
+      getAccess(address, bytes_count) | value,
       address, bytes_count
     )
   {}
 };
 
-struct write_access_scope : add_access_scope {
-  inline write_access_scope(generic_const_pointer address, size_t bytes_count)
-    : add_access_scope(access::write, address, bytes_count)
+struct WriteAccessScope : AddAccessScope {
+  inline WriteAccessScope(GenericConstPointer address, size_t bytes_count)
+    : AddAccessScope(Access::write, address, bytes_count)
   {}
 };
 
-struct full_access_scope : access_scope {
-  inline full_access_scope(generic_const_pointer address, size_t bytes_count)
-    : access_scope(access::full, address, bytes_count)
+struct FullAccessScope : AccessScope {
+  inline FullAccessScope(GenericConstPointer address, size_t bytes_count)
+    : AccessScope(Access::full, address, bytes_count)
   {}
 };
 
 template <typename T = byte_t>
-inline void copy(generic_pointer destin, generic_const_pointer source, size_t elements_count) {
+inline void copy(GenericPointer destin, GenericConstPointer source, size_t elements_count) {
   auto dst = destin.get<T>();
   auto src = source.get<T>();
 
@@ -153,7 +155,7 @@ inline void copy(generic_pointer destin, generic_const_pointer source, size_t el
 }
 
 template <typename T = byte_t>
-inline void fill(generic_pointer destin, T value, size_t elements_count) {
+inline void fill(GenericPointer destin, T value, size_t elements_count) {
   auto dst = destin.get<T>();
 
   for (size_t i = 0; i < elements_count; ++i)
@@ -163,5 +165,3 @@ inline void fill(generic_pointer destin, T value, size_t elements_count) {
 } // namespace memory
 
 _RHLIB_END
-
-_RHLIB_GLOBAL_NS(memory)

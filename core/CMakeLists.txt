@@ -8,6 +8,7 @@ target_sources(
   "${CMAKE_CURRENT_SOURCE_DIR}/include/rh/InitList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/rh/String.hpp"
 
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/memory.cpp"
 )
 

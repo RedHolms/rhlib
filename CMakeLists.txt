@@ -44,3 +44,5 @@ add_library(rhlib::rhlib ALIAS rhlib)
 set_target_properties(rhlib PROPERTIES CXX_STANDARD 23)
 
 add_subdirectory("core")
+add_subdirectory("fs")
+add_subdirectory("atomic")
