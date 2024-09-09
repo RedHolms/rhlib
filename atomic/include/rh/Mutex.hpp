@@ -3,6 +3,8 @@
 
 #include <rh.hpp>
 
+#include <rh/PImpl.hpp>
+
 _RHLIB_BEGIN
 
 class Mutex {
@@ -23,7 +25,7 @@ public:
 
 private:
 #pragma pack(push, 8)
-  struct Pimpl_Windows {
+  struct WindowsData {
     // struct _RTL_CRITICAL_SECTION
     void* _0;     // PRTL_CRITICAL_SECTION_DEBUG DebugInfo;
     long _1;      // LONG LockCount;
@@ -34,10 +36,7 @@ private:
   };
 #pragma pack(pop)
 
-  _RHLIB_DEFINE_PIMPL(
-    OS == OS_WINDOWS ? sizeof(Pimpl_Windows) :
-    0
-  );
+  _RHLIB_DEFINE_OS_PIMPL;
 };
 
 _RHLIB_END

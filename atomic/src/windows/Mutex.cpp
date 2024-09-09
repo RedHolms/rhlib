@@ -8,15 +8,15 @@ struct Mutex::Data {
   CRITICAL_SECTION critical_section;
 };
 
-Mutex::Mutex() {
+Mutex::Mutex() noexcept {
   InitializeCriticalSection(&m->critical_section);
 }
 
-Mutex::~Mutex() {
+Mutex::~Mutex() noexcept {
   DeleteCriticalSection(&m->critical_section);
 }
 
-void Mutex::lock() noexcept {
+void Mutex::lock() {
   EnterCriticalSection(&m->critical_section);
 }
 

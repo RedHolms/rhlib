@@ -10,25 +10,24 @@ class InitList {
 public:
   using type = InitList<T>;
 
-  using value_type = T;
-  using pointer    = T const*;
-
-  using size_type  = size_t;
+  using value_type    = T;
+  using const_pointer = T const*;
+  using size_type     = size_t;
 
 public:
   InitList() = delete;
 
-  constexpr InitList(pointer first, pointer last) noexcept
+  constexpr InitList(const_pointer first, const_pointer last) noexcept
     : m_begin(first), m_end(last) {}
 
 public:
   _RHLIB_NODISCARD
-  constexpr pointer begin() const noexcept {
+  constexpr const_pointer begin() const noexcept {
     return m_begin;
   }
   
   _RHLIB_NODISCARD
-  constexpr pointer end() const noexcept {
+  constexpr const_pointer end() const noexcept {
     return m_end;
   }
 
@@ -38,10 +37,10 @@ public:
   }
 
 private:
-  pointer const m_begin;
-  pointer const m_end;
+  const_pointer const m_begin;
+  const_pointer const m_end;
 };
 
 _RHLIB_END
 
-_RHLIB_GLOBAL_CLASS(InitList)
+_RHLIB_GLOBAL_CLASS(InitList);

@@ -3,6 +3,13 @@
 
 #include <rh.hpp>
 
+#include <rh/TypeTraits.hpp>
+
+#ifndef _RHLIB_NO_STL_COMPAT
+# include <string>
+# include <string_view>
+#endif
+
 _RHLIB_BEGIN
 
 class StringView;
@@ -11,8 +18,8 @@ class String;
 _RHLIB_HIDDEN_BEGIN
 
 struct StringUtils {
-  using size_type = size_t;
-  using ssize_type = ssize_t;
+  using size_type   = size_t;
+  using ssize_type  = ssize_t;
 
   template <typename CharT, typename = enable_if<is_char_type<CharT>>>
   static constexpr size_type length(const CharT* string) {
@@ -83,8 +90,13 @@ public:
 public:
   constexpr StringView() noexcept = default;
 
-  constexpr StringView(const uchar_t* string) noexcept
+  constexpr StringView(const char32_t* string) noexcept
     : m_string(string) {}
+
+#ifndef _RHLIB_NO_STL_COMPAT
+  constexpr StringView(std::u32string_view string) noexcept
+    : m_string(string.data()) {}
+#endif
 
   constexpr StringView(StringView const& other) noexcept
     : m_string(other.m_string) {}
@@ -110,6 +122,12 @@ public:
   constexpr operator const char_type*() const noexcept {
     return m_string;
   }
+
+#ifndef _RHLIB_NO_STL_COMPAT
+  constexpr operator std::u32string_view() const noexcept {
+    return std::u32string_view{m_string};
+  }
+#endif
 
 public:
   _RHLIB_NODISCARD
@@ -249,7 +267,12 @@ public:
       m_buffer[i] = character;
   }
 
-  constexpr String(String const& other) noexcept : String() {
+#ifndef _RHLIB_NO_STL_COMPAT
+  constexpr String(std::u32string_view string)
+    : String(StringView{string}) {}
+#endif
+
+  constexpr String(String const& other) : String() {
     operator=(other);
   }
 
@@ -293,6 +316,16 @@ public:
   constexpr operator const char_type*() const noexcept {
     return m_buffer;
   }
+
+#ifndef _RHLIB_NO_STL_COMPAT
+  constexpr operator std::u32string_view() const noexcept {
+    return std::u32string_view{m_buffer};
+  }
+
+  constexpr operator std::u32string() const noexcept {
+    return std::u32string{m_buffer};
+  }
+#endif
 
 public:
   constexpr char_type* data() noexcept {
@@ -507,8 +540,24 @@ public:
   }
 
 public:
+  constexpr bool operator==(String const& string) const noexcept {
+    return *this == StringView{string};
+  }
+
+  constexpr bool operator==(const char_type* string) const noexcept {
+    return *this == StringView{string};
+  }
+
   constexpr bool operator==(StringView string) const noexcept {
     return _RHLIBH StringUtils::isSubStringEqual(m_buffer, 0, string.data(), string.length());
+  }
+
+  constexpr bool operator!=(String const& string) const noexcept {
+    return !operator==(string);
+  }
+
+  constexpr bool operator!=(const char_type* string) const noexcept {
+    return !operator==(string);
   }
 
   constexpr bool operator!=(StringView string) const noexcept {
@@ -591,5 +640,13 @@ private:
 
 _RHLIB_END
 
-_RHLIB_GLOBAL_CLASS(StringView)
-_RHLIB_GLOBAL_CLASS(String)
+_RHLIB_GLOBAL_CLASS(StringView);
+_RHLIB_GLOBAL_CLASS(String);
+
+constexpr rh::String operator+(rh::StringView left, rh::StringView right) noexcept {
+  return rh::String{left}.append(right);
+}
+
+constexpr rh::String& operator+=(rh::String& left, rh::StringView right) noexcept {
+  return left.append(right);
+}

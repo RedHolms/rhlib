@@ -2,12 +2,13 @@
 #define _RHLIB_INCLUDED_ARRAY
 
 #include <rh.hpp>
+
 #include <rh/InitList.hpp>
 
 _RHLIB_BEGIN
 
 template <typename T, size_t Count>
-class Array final {
+class Array {
 private:
   using type = Array<T, Count>;
 
@@ -103,9 +104,9 @@ private:
   }
 
 private:
-  T m_values[Count];
+  value_type m_values[Count];
 };
 
 _RHLIB_END
 
-_RHLIB_GLOBAL_CLASS(Array)
+_RHLIB_GLOBAL_CLASS(Array);

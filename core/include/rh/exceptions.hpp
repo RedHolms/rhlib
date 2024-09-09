@@ -2,6 +2,7 @@
 #define _RHLIB_INCLUDED_EXCEPTIONS
 
 #include <rh.hpp>
+
 #include <rh/String.hpp>
 #include <rh/TypeInfo.hpp>
 
@@ -10,7 +11,7 @@ _RHLIB_BEGIN
 // Base class
 class Exception {
 protected:
-  constexpr Exception(TypeInfo type_info)
+  constexpr Exception(TypeInfo type_info) noexcept
     : m_type_info(type_info) {}
 
 public:
@@ -37,9 +38,9 @@ private:
 };
 
 // Generic runtime exception
-class RuntimeError final : public Exception {
+class RuntimeError : public Exception {
 public:
-  constexpr RuntimeError(StringView info);
+  constexpr RuntimeError(StringView info) noexcept;
 
 public:
   _RHLIB_NODISCARD
@@ -51,7 +52,7 @@ private:
   String m_info;
 };
 
-constexpr RuntimeError::RuntimeError(StringView info)
+constexpr RuntimeError::RuntimeError(StringView info) noexcept
   : m_info(info), Exception(typeid(RuntimeError)) {}
 
 _RHLIB_END

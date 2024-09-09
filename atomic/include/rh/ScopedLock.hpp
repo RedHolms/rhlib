@@ -2,6 +2,7 @@
 #define _RHLIB_INCLUDED_SCOPEDLOCK
 
 #include <rh.hpp>
+
 #include <rh/Mutex.hpp>
 
 _RHLIB_BEGIN

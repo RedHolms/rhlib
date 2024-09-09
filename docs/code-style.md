@@ -4,12 +4,6 @@ All headers should have definition at the beggining in this format:
 ```
 i.e. file `Array.hpp` should define `_RHLIB_INCLUDED_ARRAY`
 
-All classes should have UpperCamelCase names  
-All methods/functions should have camelCase names  
-All member types should have snake_case names  
-
-Classes that shouldn't be derived should be `final`
-
 All include directives goes in that order:
 ```
 // If source file, including associated header first
