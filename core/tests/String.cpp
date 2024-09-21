@@ -2,71 +2,39 @@
 
 #include <rh/String.hpp>
 
-TEST(StringTests, Unicode) {
-  String first, second;
+TEST(CoreTests, StringView) {
+  // Constructors
+  StringView empty;
+  StringView fromPtr = U"Hello World!";
+  StringView fromStlView = std::u32string_view{U"Hello, World!"};
+  StringView fromStlStr = std::u32string{U"Hello, World!"};
+  StringView fromOtherView = fromPtr;
+  StringView moved = U"Hello, World!";
+  StringView fromMoved = rh::move(moved);
 
-  EXPECT_TRUE(first.is_empty());
-  EXPECT_EQ(first.length(), 0);
+  // operator=
+  StringView equaled, anotherMoved;
+  equaled = U"Hello World!";
+  equaled = std::u32string_view{U"Hello, World!"};
+  equaled = std::u32string{U"Hello, World!"};
+  equaled = fromPtr;
+  anotherMoved = U"Hello, World!";
+  equaled = rh::move(anotherMoved);
 
-  first = U"Hello, World!";
-
-  EXPECT_EQ(first, U"Hello, World!");
-  EXPECT_EQ(first.length(), 13);
-
-  second = first;
-
-  EXPECT_EQ(second.length(), 13);
-  EXPECT_EQ(first, second);
-
-  {
-    char32_t* first_buffer = first.data();
-    second = rh::move(first);
-
-    EXPECT_EQ(second.data(), first_buffer);
-  }
-
-  first = rh::move(second);
-
-  first.reserve(32);
-  EXPECT_EQ(first.capacity(), 32);
-
-  first.reserve(1);
-  EXPECT_EQ(first.capacity(), 32);
-
-  first.shrinkToFit();
-  EXPECT_EQ(first.capacity(), first.length() + 1);
-
-  {
-    size_t prev_capacity = first.capacity();
-    first.clear();
-    EXPECT_EQ(prev_capacity, first.capacity());
-  }
-
-  first = U"World";
-  first.insert(0, U"Hello, ");
-
-  EXPECT_EQ(first, U"Hello, World");
-
-  first.append(U'!');
-  EXPECT_EQ(first, U"Hello, World!");
-
-  first.erase(first.length() - 1, 1);
-  EXPECT_EQ(first, U"Hello, World");
-
-  second = U"Hello";
-  EXPECT_TRUE(first.startsWith(U"Hello"));
-  EXPECT_TRUE(first.startsWith(second));
-  EXPECT_TRUE(first.startsWith(second.data()));
-
-  second = U"World";
-  EXPECT_TRUE(first.endsWith(U"World"));
-  EXPECT_TRUE(first.endsWith(second));
-  EXPECT_TRUE(first.endsWith(second.data()));
-
-  second = U"llo, Wo";
-  EXPECT_TRUE(first.contains(U"llo, Wo"));
-  EXPECT_TRUE(first.contains(second));
-  EXPECT_TRUE(first.contains(second.data()));
-
-  EXPECT_EQ(first[1], U'e');
+  // Cast operators
+  const char32_t* utf32_ptr = empty;
+  std::u32string utf32_stl = empty;
+  std::u32string_view utf32_stl_view = empty;
+  
+  // Functions
+  EXPECT_EQ(empty.data(), empty.begin());
+  EXPECT_EQ(empty.data() + empty.length(), empty.end());
+  EXPECT_TRUE(empty.isEmpty());
+  EXPECT_TRUE(moved.isEmpty());
+  EXPECT_FALSE(fromPtr.isEmpty());
+  EXPECT_EQ(fromPtr.length(), 12);
+  EXPECT_TRUE(fromPtr.startsWith(U"Hello", 5));
+  EXPECT_TRUE(fromPtr.startsWith(U"Hello"));
+  EXPECT_TRUE(fromPtr.startsWith(String{U"Hello"}));
+  EXPECT_TRUE(fromPtr.startsWith(StringView{U"Hello"}));
 }

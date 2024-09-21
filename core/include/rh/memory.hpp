@@ -8,6 +8,13 @@
 
 _RHLIB_BEGIN
 
+// Just like a std::launder
+template <typename T>
+[[nodiscard]]
+constexpr T* launder(T* pointer) noexcept {
+  return __builtin_launder(pointer);
+}
+
 namespace memory {
 
 enum class access : uint8_t {
@@ -19,7 +26,7 @@ enum class access : uint8_t {
   full = read | write | execute
 };
 
-_RHLIB_NODISCARD
+[[nodiscard]]
 _RHLIB_API
 access getAccess(AnyPtr address, size_t bytes_count);
 
@@ -71,7 +78,7 @@ struct FullAccessScope : AccessScope {
   {}
 };
 
-template <typename T = byte_t>
+template <typename T = byte>
 inline void copy(AnyPtr destination, ConstAnyPtr source, size_t elements_count) {
   auto dst = destination.get<T>();
   auto src = source.get<T>();
@@ -94,7 +101,7 @@ inline void copy(AnyPtr destination, ConstAnyPtr source, size_t elements_count) 
   }
 }
 
-template <typename T = byte_t>
+template <typename T = byte>
 inline void fill(AnyPtr destination, T value, size_t elements_count) {
   auto dst = destination.get<T>();
 

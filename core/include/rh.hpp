@@ -2,9 +2,9 @@
 #define _RHLIB_INCLUDED
 
 #ifdef _WINDOWS_
-#warning Consider including <Windows.h> after rhlib headers
-#undef min
-#undef max
+# warning Consider including <Windows.h> after rhlib headers
+# undef min
+# undef max
 #endif
 
 #if __cplusplus < 202302L
@@ -30,7 +30,6 @@
 # define _RHLIB_GLOBAL_NS(...)
 #endif
 
-#define _RHLIB_NODISCARD [[nodiscard]]
 #define _RHLIB_ALLOCATOR __declspec(allocator)
 
 #define _RHLIB_UNUSED(v) [](...){}(v)
@@ -90,14 +89,16 @@ using unwrap_type = typename Wrapper::type;
 template <typename Wrapper>
 static constexpr auto unwrap_value = Wrapper::value;
 
-using int8_t    = signed char;
-using uint8_t   = unsigned char;
-using int16_t   = signed short;
-using uint16_t  = unsigned short;
-using int32_t   = signed int;
-using uint32_t  = unsigned int;
-using int64_t   = signed long long;
-using uint64_t  = unsigned long long;
+// I really don't recommend to use [u]int8_t, becuase it chat be missmatched with char.
+// Use "byte" everywhere you can
+using int8_t   = signed char;
+using uint8_t  = unsigned char;
+using int16_t  = signed short;
+using uint16_t = unsigned short;
+using int32_t  = signed int;
+using uint32_t = unsigned int;
+using int64_t  = signed long long;
+using uint64_t = unsigned long long;
 
 #if _RHLIB_BITNESS == 64
 using uintptr_t = uint64_t;
@@ -109,39 +110,53 @@ using intptr_t  = int32_t;
 
 using size_t    = decltype(sizeof(int));
 using ptrdiff_t = decltype(((int*)0) - ((int*)0));
+using ssize_t   = ptrdiff_t;
 using nullptr_t = decltype(nullptr);
 
-using uchar_t   = char32_t;
+// works just like a number, but doesn't collapse with "char"
+struct byte {
+  uint8_t value;
 
-using byte_t    = uint8_t;
-using word_t    = uint16_t;
-using dword_t   = uint32_t;
-using qword_t   = uint64_t;
+  constexpr byte() noexcept
+    : value(0) {}
 
-_RHLIB_HIDDEN_BEGIN
+  template <typename T>
+  constexpr byte(T&& arg) noexcept
+    : value(static_cast<uint8_t>(arg)) {}
 
-template <typename>
-struct make_signed_int_wrapper;
+  constexpr operator int8_t  () const noexcept { return value; }
+  constexpr operator uint8_t () const noexcept { return value; }
+  constexpr operator int16_t () const noexcept { return value; }
+  constexpr operator uint16_t() const noexcept { return value; }
+  constexpr operator int32_t () const noexcept { return value; }
+  constexpr operator uint32_t() const noexcept { return value; }
+  constexpr operator int64_t () const noexcept { return value; }
+  constexpr operator uint64_t() const noexcept { return value; }
 
-template <>
-struct make_signed_int_wrapper<uint8_t>
-  : type_wrapper<int8_t> {};
+  template <typename T>
+  constexpr byte& operator+=(T&& right)  { value += right; return *this; }
+  constexpr byte& operator+=(byte right) { value += right.value; return *this; }
+  
+  template <typename T>
+  constexpr byte& operator-=(T&& right)  { value -= right; return *this; }
+  constexpr byte& operator-=(byte right) { value -= right.value; return *this; }
+  
+  template <typename T>
+  constexpr byte& operator*=(T&& right)  { value *= right; return *this; }
+  constexpr byte& operator*=(byte right) { value *= right.value; return *this; }
+  
+  template <typename T>
+  constexpr byte& operator/=(T&& right)  { value /= right; return *this; }
+  constexpr byte& operator/=(byte right) { value /= right.value; return *this; }
+  
+  template <typename T>
+  constexpr byte& operator%=(T&& right)  { value %= right; return *this; }
+  constexpr byte& operator%=(byte right) { value %= right.value; return *this; }
+};
 
-template <>
-struct make_signed_int_wrapper<uint16_t>
-  : type_wrapper<int16_t> {};
-
-template <>
-struct make_signed_int_wrapper<uint32_t>
-  : type_wrapper<int32_t> {};
-
-template <>
-struct make_signed_int_wrapper<uint64_t>
-  : type_wrapper<int64_t> {};
-
-_RHLIB_HIDDEN_END
-
-using ssize_t = unwrap_type<_RHLIBH make_signed_int_wrapper<size_t>>;
+using word  = uint16_t;
+using dword = uint32_t;
+using qword = uint64_t;
 
 template <typename InIt, typename OutIt>
 constexpr void copy(OutIt dest, InIt begin, InIt end) {
@@ -182,61 +197,25 @@ constexpr auto clamp(T const& value, T const& min_border, T const& max_border) {
   return min(max(value, min_border), max_border);
 }
 
-// Just like a std::launder
-template <typename T>
-_RHLIB_NODISCARD
-constexpr T* launder(T* pointer) noexcept {
-  return __builtin_launder(pointer);
+template<typename T>
+T&& declval() noexcept {
+  static_assert(false, "don't use declval in evaluated code");
 }
 
 _RHLIB_END
 
-#ifndef __NOTHROW_T_DEFINED
-#define __NOTHROW_T_DEFINED
-namespace std {
-
-struct nothrow_t {
-  explicit nothrow_t() = default;
-};
-
-extern nothrow_t const nothrow;
-
-} // namespace std
-#endif
-
-_RHLIB_NODISCARD _RHLIB_ALLOCATOR
-void* __cdecl operator new(size_t size);
-_RHLIB_NODISCARD _RHLIB_ALLOCATOR
-void* __cdecl operator new(size_t size, std::nothrow_t const&) noexcept;
-_RHLIB_NODISCARD _RHLIB_ALLOCATOR
-void* __cdecl operator new[](size_t size);
-_RHLIB_NODISCARD _RHLIB_ALLOCATOR
-void* __cdecl operator new[](size_t size, std::nothrow_t const&) noexcept;
-void __cdecl operator delete(void* block) noexcept;
-void __cdecl operator delete(void* block, std::nothrow_t const&) noexcept;
-void __cdecl operator delete[](void* block) noexcept;
-void __cdecl operator delete[](void* block, std::nothrow_t const&) noexcept;
-void __cdecl operator delete(void* block, rh::size_t size) noexcept;
-void __cdecl operator delete[](void* block, rh::size_t size) noexcept;
-
-#ifndef __PLACEMENT_NEW_INLINE
-#define __PLACEMENT_NEW_INLINE
-
-inline void* __cdecl operator new(size_t size, void* where) noexcept {
-  _RHLIB_UNUSED(size);
-  return where;
+constexpr rh::byte operator+(rh::byte left, rh::byte right) noexcept {
+  return rh::byte(left.value + right.value);
 }
-inline void __cdecl operator delete(void*, void*) noexcept {}
-
-#endif
-
-#ifndef __PLACEMENT_VEC_NEW_INLINE
-#define __PLACEMENT_VEC_NEW_INLINE
-
-inline void* __cdecl operator new[](size_t size, void* where) noexcept {
-  _RHLIB_UNUSED(size);
-  return where;
+constexpr rh::byte operator-(rh::byte left, rh::byte right) noexcept {
+  return rh::byte(left.value - right.value);
 }
-inline void __cdecl operator delete[](void*, void*) noexcept {}
-
-#endif
+constexpr rh::byte operator*(rh::byte left, rh::byte right) noexcept {
+  return rh::byte(left.value * right.value);
+}
+constexpr rh::byte operator/(rh::byte left, rh::byte right) noexcept {
+  return rh::byte(left.value / right.value);
+}
+constexpr rh::byte operator%(rh::byte left, rh::byte right) noexcept {
+  return rh::byte(left.value % right.value);
+}

@@ -6,44 +6,57 @@
 #include <rh/String.hpp>
 #include <rh/TypeInfo.hpp>
 
+#include <exception>
+
 _RHLIB_BEGIN
 
 // Base class
-class Exception {
+class Exception : public std::exception {
+public:
+  Exception() = delete;
+
 protected:
-  constexpr Exception(TypeInfo type_info) noexcept
-    : m_type_info(type_info) {}
+  inline Exception(TypeInfo typeInfo) noexcept
+    : m_typeInfo(typeInfo) {}
 
 public:
-  _RHLIB_NODISCARD
-  constexpr TypeInfo type_info() const noexcept {
-    return m_type_info;
+  [[nodiscard]]
+  constexpr TypeInfo typeInfo() const noexcept {
+    return m_typeInfo;
   }
 
-  _RHLIB_NODISCARD
-  constexpr const char* type_name() const noexcept {
-    return m_type_info.name();
+  [[nodiscard]]
+  constexpr const char* typeName() const noexcept {
+    return m_typeInfo.name();
   }
 
-  _RHLIB_NODISCARD
-  constexpr size_t type_hash() const noexcept {
-    return m_type_info.hash_code();
+  [[nodiscard]]
+  constexpr size_t typeHash() const noexcept {
+    return m_typeInfo.hash_code();
   }
 
-  _RHLIB_NODISCARD
+  [[nodiscard]]
   virtual StringView info() const noexcept = 0;
 
+  // compatibility with STL
+  [[nodiscard]]
+  constexpr const char* what() const noexcept { return "rhlib exception"; }
+
 private:
-  TypeInfo m_type_info;
+  TypeInfo m_typeInfo;
 };
 
 // Generic runtime exception
 class RuntimeError : public Exception {
 public:
-  constexpr RuntimeError(StringView info) noexcept;
+  inline RuntimeError(StringView info) noexcept;
+
+protected:
+  inline RuntimeError(StringView info, TypeInfo typeInfo) noexcept
+    : m_info(info), Exception(typeInfo) {}
 
 public:
-  _RHLIB_NODISCARD
+  [[nodiscard]]
   inline StringView info() const noexcept {
     return m_info;
   }
@@ -52,7 +65,16 @@ private:
   String m_info;
 };
 
-constexpr RuntimeError::RuntimeError(StringView info) noexcept
-  : m_info(info), Exception(typeid(RuntimeError)) {}
+inline RuntimeError::RuntimeError(StringView info) noexcept
+  : RuntimeError(info, typeid(RuntimeError)) {}
+
+// Invalid index
+class IndexError final : public RuntimeError {
+public:
+  inline IndexError(StringView info = U"invalid index") noexcept;
+};
+
+inline IndexError::IndexError(StringView info) noexcept
+  : RuntimeError(info, typeid(IndexError)) {}
 
 _RHLIB_END

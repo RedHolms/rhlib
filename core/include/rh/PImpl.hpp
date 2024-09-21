@@ -3,7 +3,7 @@
 
 #include <rh.hpp>
 
-#include <rh/TypeTraits.hpp> // for constuct_at and destruct_at, even if they're used only in source file
+#include <rh/TypeTraits.hpp> // for constuct_at and destructAt, even if they're used only in source file
 
 _RHLIB_BEGIN
 _RHLIB_HIDDEN_BEGIN
@@ -15,11 +15,11 @@ struct PImpl {
   template <typename... ArgsT>
   inline PImpl(ArgsT&&... args) {
     static_assert(sizeof(RealT) <= sizeof(StorageT), "Invalid PIMPL size");
-    construct_at<RealT>((RealT*)&storage, forward<ArgsT>(args)...);
+    constructAt<RealT>((RealT*)&storage, forward<ArgsT>(args)...);
   }
 
   inline ~PImpl() {
-    destruct_at<RealT>((RealT*)&storage);
+    destructAt<RealT>((RealT*)&storage);
   }
 
   inline RealT* operator->() noexcept {
@@ -39,5 +39,5 @@ _RHLIB_END
   _RHLIBH PImpl<Data, StorageT> m
 
 #if _RHLIB_OS == _RHLIB_OS_WINDOWS
-#define _RHLIB_DEFINE_OS_PIMPL _RHLIB_DEFINE_PIMPL(WindowsData)
+# define _RHLIB_DEFINE_OS_PIMPL _RHLIB_DEFINE_PIMPL(WindowsData)
 #endif

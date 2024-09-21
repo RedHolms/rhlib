@@ -10,14 +10,7 @@ _RHLIB_BEGIN
 template <typename T, size_t Count>
 class Array {
 private:
-  using type = Array<T, Count>;
-
-  using value_type      = T;
-  using pointer         = T*;
-  using const_pointer   = T const*;
-  using reference       = T&;
-  using const_reference = T const&;
-  using size_type       = size_t;
+  using value_type = T;
 
 public:
   constexpr Array() noexcept = default;
@@ -47,64 +40,69 @@ public:
   }
 
 public:
-  _RHLIB_NODISCARD
-  constexpr pointer data() noexcept {
+  [[nodiscard]]
+  constexpr T* data() noexcept {
     return m_values;
   }
   
-  _RHLIB_NODISCARD
-  constexpr const_pointer data() const noexcept {
+  [[nodiscard]]
+  constexpr T const* data() const noexcept {
     return m_values;
   }
 
-  _RHLIB_NODISCARD
-  constexpr pointer begin() noexcept {
+  [[nodiscard]]
+  constexpr T* begin() noexcept {
     return m_values;
   }
 
-  _RHLIB_NODISCARD
-  constexpr const_pointer begin() const noexcept {
+  [[nodiscard]]
+  constexpr T const* begin() const noexcept {
     return m_values;
   }
 
-  _RHLIB_NODISCARD
-  constexpr pointer end() noexcept {
+  [[nodiscard]]
+  constexpr T* end() noexcept {
     return m_values + count();
   }
 
-  _RHLIB_NODISCARD
-  constexpr const_pointer end() const noexcept {
+  [[nodiscard]]
+  constexpr T const* end() const noexcept {
     return m_values + count();
   }
 
-  _RHLIB_NODISCARD
-  constexpr size_type count() const noexcept {
+  [[nodiscard]]
+  constexpr bool isEmpty() const noexcept {
+    return false;
+  }
+
+  [[nodiscard]]
+  constexpr size_t length() const noexcept {
     return Count;
   }
 
-  _RHLIB_NODISCARD
-  constexpr reference operator[](size_type index) noexcept {
+  [[nodiscard]]
+  constexpr T& operator[](size_t index) noexcept {
     return m_values[index];
   }
 
-  _RHLIB_NODISCARD
-  constexpr const_reference operator[](size_type index) const noexcept {
+  [[nodiscard]]
+  constexpr T const& operator[](size_t index) const noexcept {
     return m_values[index];
   }
 
 private:
   constexpr void _copyOther(Array const& other) noexcept {
-    for (size_type i = 0; i < Count; ++i)
+    for (size_t i = 0; i < Count; ++i)
       m_values[i] = other[i];
   }
 
   constexpr void _stealOther(Array& other) noexcept {
-    for (size_type i = 0; i < Count; ++i)
+    for (size_t i = 0; i < Count; ++i)
       m_values[i] = move(other[i]);
   }
 
 private:
-  value_type m_values[Count];
+  T m_values[Count];
 };
 
 _RHLIB_END

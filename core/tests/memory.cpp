@@ -37,6 +37,4 @@ TEST(MemoryTests, Access) {
 
   // memory::set_access(original_access, some_memory, 1);
   // delete[] some_memory;
-  int* p = nullptr;
-  *p = 0;
 }

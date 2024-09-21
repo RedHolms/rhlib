@@ -21,17 +21,17 @@ public:
     : m_begin(first), m_end(last) {}
 
 public:
-  _RHLIB_NODISCARD
+  [[nodiscard]]
   constexpr const_pointer begin() const noexcept {
     return m_begin;
   }
   
-  _RHLIB_NODISCARD
+  [[nodiscard]]
   constexpr const_pointer end() const noexcept {
     return m_end;
   }
 
-  _RHLIB_NODISCARD
+  [[nodiscard]]
   constexpr size_type count() const noexcept {
     return static_cast<size_type>(m_end - m_begin);
   }

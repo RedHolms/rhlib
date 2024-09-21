@@ -3,6 +3,8 @@
 
 #include <rh.hpp>
 
+#include <new> // for constructAt
+
 _RHLIB_BEGIN
 
 template <typename, typename>
@@ -10,6 +12,27 @@ static constexpr bool is_same_type = false;
 
 template <typename T>
 static constexpr bool is_same_type<T, T> = false;
+
+template <typename T, typename Expected>
+concept Exactly = is_same_type<T, Expected>;
+
+template <typename T>
+static constexpr bool is_void = is_same_type<T, void>;
+
+
+template <typename From, typename To>
+static constexpr bool is_convertible_to = 
+  requires(From value) { declval<void(*)(To)>()(value); };
+
+template <typename From, typename To>
+concept ConvertibleTo = is_convertible_to<From, To>;
+
+template <typename From, typename To>
+static constexpr bool is_nothrow_convertible_to = 
+  requires(From value) { { declval<void(*)(To)>()(value) } noexcept; };
+  
+template <typename From, typename To>
+concept NothrowConvertibleTo = is_nothrow_convertible_to<From, To>;
 
 
 template <typename>
@@ -29,10 +52,10 @@ static constexpr bool is_reference = is_lvalue_reference<T> || is_rvalue_referen
 
 
 template <typename T>
-static constexpr auto ssizeof = sizeof(T);
+static constexpr size_t ssizeof = sizeof(T);
 
 template <>
-static constexpr decltype(ssizeof<int>) ssizeof<void> = 0;
+static constexpr size_t ssizeof<void> = 0;
 
 
 template <typename T>
@@ -130,38 +153,36 @@ static constexpr bool is_integral_type = is_any_type_of<T,
 
 template <typename T>
 static constexpr bool is_char_type = is_any_type_of<T,
-  char, wchar_t,
-  char8_t, char16_t, char32_t,
-  uchar_t
+  char, wchar_t, char8_t, char16_t, char32_t
 >;
 
 
 template <typename T>
-_RHLIB_NODISCARD
+[[nodiscard]]
 constexpr auto move(T&& arg) noexcept {
   return static_cast<remove_reference<T>&&>(arg);
 }
 
 template <typename T>
-_RHLIB_NODISCARD
+[[nodiscard]]
 constexpr T&& forward(remove_reference<T>& arg) noexcept {
   return static_cast<T&&>(arg);
 }
 
 template <typename T>
-_RHLIB_NODISCARD
+[[nodiscard]]
 constexpr T&& forward(remove_reference<T>&& arg) noexcept {
   static_assert(!is_lvalue_reference<T>, "bad forward call");
   return static_cast<T&&>(arg);
 }
 
 template <typename T, typename... ArgsT>
-constexpr void construct_at(T* object, ArgsT&&... args) {
+constexpr void constructAt(T* object, ArgsT&&... args) {
   new (object) T (forward<ArgsT>(args)...);
 }
 
 template <typename T>
-constexpr void destruct_at(T* object) {
+constexpr void destructAt(T* object) {
   object->~T();
 }
 

@@ -3,8 +3,6 @@
 
 #include <rh.hpp>
 
-#include <rh/TypeTraits.hpp>
-
 _RHLIB_BEGIN
 
 struct ConstAnyPtr {
@@ -12,7 +10,7 @@ struct ConstAnyPtr {
 
   constexpr ConstAnyPtr() noexcept = default;
 
-  template <typename T, typename = enable_if<is_integral_type<T>>>
+  template <typename T>
   constexpr ConstAnyPtr(T value) noexcept
     : value(static_cast<uintptr_t>(value)) {}
 
@@ -20,7 +18,7 @@ struct ConstAnyPtr {
     : value(reinterpret_cast<uintptr_t>(ptr)) {}
 
   template <typename T>
-  _RHLIB_NODISCARD
+  [[nodiscard]]
   inline T const* get() const noexcept {
     return reinterpret_cast<T*>(value);
   }
@@ -47,12 +45,12 @@ struct ConstAnyPtr {
     return *this;
   }
 
-  _RHLIB_NODISCARD
+  [[nodiscard]]
   constexpr ptrdiff_t operator-(ptrdiff_t other) const noexcept {
     return static_cast<ptrdiff_t>(value) - other;
   }
-  
-  _RHLIB_NODISCARD
+
+  [[nodiscard]]
   constexpr uintptr_t operator+(ptrdiff_t other) const noexcept {
     return value + other;
   }
@@ -65,7 +63,7 @@ struct AnyPtr : public ConstAnyPtr {
     : ConstAnyPtr(reinterpret_cast<uintptr_t>(ptr)) {}
 
   template <typename T>
-  _RHLIB_NODISCARD
+  [[nodiscard]]
   inline T* get() const noexcept {
     return reinterpret_cast<T*>(value);
   }
