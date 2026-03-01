@@ -1,11 +1,11 @@
 #ifndef __RHLIB_GLOBAL_INCLUDED
 #define __RHLIB_GLOBAL_INCLUDED
 
-#include <rh/c/rhlib.h>
-
 #ifdef __cplusplus
 #include <rh/rhlib.hpp>
 #endif // #ifdef __cplusplus
+
+#include <rh/c/rhlib.h>
 
 #ifdef _WIN32
 #include <Windows.h>
