@@ -1,7 +1,8 @@
 #pragma once
+#define __RHLIB_MAIN_HEADER_INCLUDED
 
+#include <rh/c/rhlib.h>
 #include <rh/casts.hpp>
-#include <rh/internal/rhlib.h>
 #include <rh/syntax.hpp>
 
 namespace std {

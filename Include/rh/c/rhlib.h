@@ -39,4 +39,9 @@ extern "C"
  */
 #define UNREACHABLE() _UnreachableCodeHandler(_RHLIB_WFILE, __LINE__)
 
+#if defined(__cplusplus) && !defined(__RHLIB_MAIN_HEADER_INCLUDED)
+#warning "rhlib's C header should not be included from C++"
+#include <rh/rhlib.hpp>
+#endif
+
 #endif // #ifndef __RHLIB_C_MAIN_HEADER_INCLUDED

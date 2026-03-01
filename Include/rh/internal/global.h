@@ -1,7 +1,7 @@
 #ifndef __RHLIB_GLOBAL_INCLUDED
 #define __RHLIB_GLOBAL_INCLUDED
 
-#include <rh/internal/rhlib.h>
+#include <rh/c/rhlib.h>
 
 #ifdef __cplusplus
 #include <rh/rhlib.hpp>
