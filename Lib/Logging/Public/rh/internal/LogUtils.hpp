@@ -4,7 +4,7 @@
 
 namespace LogUtils {
 
-constexpr size_t MAX_LENGTH = 64;
+constexpr size_t MAX_LENGTH = 256;
 
 // case-insensitive comparison with '/' == '\\'
 consteval bool IsPathCharsSame(char a, char b) {
@@ -17,8 +17,8 @@ consteval bool IsPathCharsSame(char a, char b) {
 
 consteval std::array<char, MAX_LENGTH> MakeRelPath(const char* filePath) {
 #ifndef RHLOG_FILES_ROOT
-  std::array<char, MAX_LENGTH> result = {};
-  for (size_t i = 0; i <= MAX_LENGTH && filePath[i]; ++i)
+  std::array<char, MAX_LENGTH> result = {0};
+  for (size_t i = 0; i < (MAX_LENGTH-1) && filePath[i]; ++i)
     result[i] = filePath[i];
   return result;
 #else
