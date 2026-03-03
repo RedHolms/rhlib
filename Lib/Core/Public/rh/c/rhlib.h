@@ -54,7 +54,7 @@ extern "C"
  * Will call _AssertationFailureHandler()
  */
 #define ASSERT(EXPR)                                                                               \
-  (void)(!(expr) && (_AssertationFailureHandler(#EXPR, _RHLIB_WFILE, __LINE__), 0))
+  (void)(!(EXPR) && (_AssertationFailureHandler(#EXPR, _RHLIB_WFILE, __LINE__), 0))
 
 #if defined(__cplusplus) && !defined(__RHLIB_MAIN_HEADER_INCLUDED)
 #error "rhlib's C header should not be included directly from C++"
