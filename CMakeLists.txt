@@ -10,6 +10,15 @@ endif()
 
 project("rhlib" LANGUAGES CXX)
 
+if(RHLIB_ROOT_PROJECT)
+  # Add all modules
+  file(GLOB RHLIB_MODULES
+    LIST_DIRECTORIES true
+    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/Lib"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Lib/*"
+  )
+endif()
+
 if(NOT DEFINED RHLIB_MODULES)
   # Default modules:
   set(RHLIB_MODULES "Core")
