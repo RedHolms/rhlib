@@ -58,3 +58,28 @@ MAKE_LEVEL_LOG(Fatal);
 #undef MAKE_LEVEL_LOG
 
 } // namespace Log
+
+#ifdef _WIN32
+#include <rh/win32/errors.hpp>
+
+forceinline bool __REPORT_HRESULT(
+  HRESULT hr,
+  std::array<char, LogUtils::MAX_LENGTH> const& file = LogUtils::MakeRelPath(__builtin_FILE()),
+  uint line = __builtin_LINE()
+) {
+  if (SUCCEEDED(hr))
+    return false;
+
+  Logger::Instance->Print(
+    LogLevel::Error,
+    fmt::format("HRESULT Failed (0x{:08X}): {}", (uint32_t)hr, Win32ErrorToString(hr)).c_str(),
+    file.data(),
+    line
+  );
+
+  return true;
+}
+
+// Works like FAILED() but also logs failed HRESULTs
+#define REPORT_HRESULT(...) __REPORT_HRESULT((__VA_ARGS__))
+#endif
