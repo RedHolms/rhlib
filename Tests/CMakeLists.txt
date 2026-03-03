@@ -19,7 +19,7 @@ add_executable(rhlib_tests
   "StringTests.cpp"
 )
 
-target_link_libraries(rhlib_tests PRIVATE rhlib GTest::gtest_main)
+target_link_libraries(rhlib_tests PRIVATE rhlib GTest::gtest_main GTest::gmock)
 set_target_properties(rhlib_tests PROPERTIES CXX_STANDARD 20)
 
 gtest_discover_tests(rhlib_tests)

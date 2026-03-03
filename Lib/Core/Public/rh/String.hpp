@@ -62,6 +62,9 @@ struct Encoding {
  */
 class String {
 public:
+  using value_type = char32_t;
+
+public:
   constexpr String() = default;
 
   template <EncodedChar T>
@@ -236,6 +239,9 @@ private:
 
   template <EncodedChar ChT>
   inline void _initFromEncoded(const ChT* rawString, size_t lengthInChars) {
+    if (lengthInChars == 0)
+      return;
+
     using Enc = rh::internal::StrImpl::Encoding<ChT>;
 
     auto uniLength = Enc::UnicodeStringLength(rawString, lengthInChars);

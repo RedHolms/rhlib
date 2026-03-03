@@ -57,11 +57,15 @@ size_t Encoding<char8_t>::UnicodeStringLength(
   bool hasLength = lengthInChars != 0;
 
   for (size_t i = 0; hasLength ? i < lengthInChars : string[i]; ++i) {
-    if (!Utf8DecodeStep(&state, nullptr, string[i]))
-      result += 1;
+    Utf8DecodeStep(&state, nullptr, string[i]);
+
+    if (state == ACCEPT || state == REJECT) {
+      ++result;
+      state = 0;
+    }
   }
 
-  return state != ACCEPT ? result : -1;
+  return result;
 }
 
 template <>
