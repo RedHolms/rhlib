@@ -1,7 +1,25 @@
 ﻿cmake_minimum_required(VERSION 3.18)
+include(FetchContent)
+
+if(NOT DEFINED RHLIB_ROOT_PROJECT)
+  set(RHLIB_ROOT_PROJECT OFF)
+  if(NOT DEFINED PROJECT_NAME)
+    set(RHLIB_ROOT_PROJECT ON)
+  endif()
+endif()
+
 project("rhlib" LANGUAGES CXX)
 
-include(FetchContent)
+if(NOT DEFINED RHLIB_MODULES)
+  # Default modules:
+  set(RHLIB_MODULES "Core")
+endif()
+
+if(NOT "Core" IN_LIST RHLIB_MODULES)
+  list(INSERT RHLIB_MODULES 0 "Core")
+endif()
+
+message(STATUS "rhlib modules: ${RHLIB_MODULES}")
 
 FetchContent_Declare(
   fmtlib
@@ -39,21 +57,39 @@ if(WIN32)
   )
 endif()
 
-target_include_directories(rhlib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Include")
-
 # Include global header file
-set(GLOBAL_HEADER_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Include/rh/internal/global.h")
+set(GLOBAL_HEADER_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Core/Public/rh/internal/global.h")
 if(RHLIB_MSVC_LIKE_CC)
   target_compile_options(rhlib PUBLIC "/FI${GLOBAL_HEADER_PATH}")
 elseif(RHLIB_GNU_LIKE_CC)
   target_compile_options(rhlib PUBLIC "-include${GLOBAL_HEADER_PATH}")
 endif()
 
-# Collect source files
-file(GLOB_RECURSE RHLIB_HEADERS "Include/*.hpp" "Include/*.h")
-file(GLOB_RECURSE RHLIB_SOURCES "Lib/*.cpp" "Lib/*.hpp")
-target_sources(rhlib PUBLIC ${RHLIB_HEADERS})
-target_sources(rhlib PRIVATE ${RHLIB_SOURCES})
+function(_rhlib_add_sources_dir SCOPE DIR_PATH)
+  if(IS_DIRECTORY ${DIR_PATH})
+    file(
+      GLOB_RECURSE _FILES
+      "${DIR_PATH}/*.cpp" "${DIR_PATH}/*.c"
+      "${DIR_PATH}/*.hpp" "${DIR_PATH}/*.h"
+    )
+
+    target_include_directories(rhlib ${SCOPE} "${DIR_PATH}")
+    target_sources(rhlib ${SCOPE} ${_FILES})
+  endif()
+endfunction()
+
+# Add modules
+set(_MODULES_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/Lib")
+foreach(MODULE IN LISTS RHLIB_MODULES)
+  set(_MODULE_DIR "${_MODULES_ROOT}/${MODULE}")
+
+  if(NOT IS_DIRECTORY ${_MODULE_DIR})
+    message(FATAL_ERROR "Unknown rhlib module: ${MODULE}")
+  endif()
+
+  _rhlib_add_sources_dir(PRIVATE "${_MODULE_DIR}/Private")
+  _rhlib_add_sources_dir(PUBLIC "${_MODULE_DIR}/Public")
+endforeach()
 
 FetchContent_MakeAvailable(fmtlib)
 target_link_libraries(rhlib PUBLIC fmt::fmt)
