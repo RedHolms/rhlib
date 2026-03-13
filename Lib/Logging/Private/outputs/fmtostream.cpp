@@ -5,7 +5,7 @@ using rh::log::FmtStreamOutput;
 FmtStreamOutput::~FmtStreamOutput() = default;
 
 void FmtStreamOutput::Print(String const& text) {
-  m_stream.print("{}", text);
+  m_stream.print("{}\n", text);
 }
 
 bool FmtStreamOutput::DoesSupportColors() {

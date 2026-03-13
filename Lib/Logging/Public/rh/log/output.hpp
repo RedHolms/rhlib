@@ -14,9 +14,11 @@ public:
 
 public:
   // Output formatted line. "text" will NOT have line feed at the end.
+  // Guaranteed to be called only from one thread at a time
   virtual void Print(String const& text) = 0;
 
   // Does this output support ANSI colors? (i.e. console)
+  // Will be called only once upon Logger initialization
   virtual bool DoesSupportColors() = 0;
 };
 

@@ -5,8 +5,11 @@
 using rh::log::ConsoleErrorOutput;
 
 void ConsoleErrorOutput::Print(String const& text) {
+  HANDLE handle = GetStdHandle(STD_ERROR_HANDLE);
+
   auto encoded = text.toSTL<wchar_t>();
-  WriteConsoleW(GetStdHandle(STD_ERROR_HANDLE), encoded.c_str(), encoded.size(), nullptr, nullptr);
+  WriteConsoleW(handle, encoded.c_str(), encoded.size(), nullptr, nullptr);
+  WriteConsoleW(handle, L"\n", 1, nullptr, nullptr);
 }
 
 bool ConsoleErrorOutput::DoesSupportColors() {

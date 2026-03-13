@@ -13,6 +13,7 @@ public:
 
 public:
   // Format the message. "withColors" toggles ANSI color sequences.
+  // Guaranteed to be called only from one thread at a time
   virtual String Format(Message const& message, bool withColors) = 0;
 };
 

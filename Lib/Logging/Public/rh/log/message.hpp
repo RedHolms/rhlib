@@ -2,6 +2,7 @@
 
 #include <rh/log/clock.hpp>
 #include <rh/log/levels.hpp>
+#include <rh/log/thread.hpp>
 #include <rh/String.hpp>
 #include <source_location>
 
@@ -12,16 +13,10 @@ namespace rh::log {
  */
 struct Message {
   String text;
-  clock::time_point time;
+  LocalTimepoint time;
   Level level;
-
   std::source_location source;
-
-  struct {
-    size_t id;
-    void* handle;
-    std::string name;
-  } thread;
+  ThreadInfo thread;
 };
 
 } // namespace rh::log
