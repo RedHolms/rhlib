@@ -14,7 +14,7 @@
 #define nullhandle 0
 #endif
 
-#endif
+#endif // #ifdef _WIN32
 
 typedef unsigned int uint;
 typedef ptrdiff_t ssize_t;
