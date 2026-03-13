@@ -8,9 +8,9 @@ namespace rh::log {
 /**
  * Abstract output for log lines (i.e. file or console). Outputs already formatted messages.
  */
-class LoggingOutput {
+class Output {
 public:
-  virtual ~LoggingOutput() = default;
+  virtual ~Output() = default;
 
 public:
   // Output formatted line. "text" will NOT have line feed at the end.
@@ -23,7 +23,7 @@ public:
 /**
  * Implementation of LoggingOutput that does not log anything
  */
-class EmptyOutput final : public LoggingOutput {
+class EmptyOutput final : public Output {
 public:
   constexpr EmptyOutput() = default;
   inline ~EmptyOutput() override = default;
@@ -36,7 +36,7 @@ public:
 /**
  * Implementation of LoggingOutput that logs lines to the stdout of the process
  */
-class ConsoleOutput final : public LoggingOutput {
+class ConsoleOutput final : public Output {
 public:
   constexpr ConsoleOutput() = default;
   inline ~ConsoleOutput() override = default;
@@ -49,7 +49,7 @@ public:
 /**
  * Implementation of LoggingOutput that logs lines to the stderr of the process
  */
-class ConsoleErrorOutput final : public LoggingOutput {
+class ConsoleErrorOutput final : public Output {
 public:
   constexpr ConsoleErrorOutput() = default;
   inline ~ConsoleErrorOutput() override = default;
@@ -62,7 +62,7 @@ public:
 /**
  * Implementation of LoggingOutput that logs lines to an object of type fmt::ostream
  */
-class FmtStreamOutput final : public LoggingOutput {
+class FmtStreamOutput final : public Output {
 public:
   inline explicit FmtStreamOutput(fmt::ostream&& stream) : m_stream(std::move(stream)) {}
   ~FmtStreamOutput() override;
