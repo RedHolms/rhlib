@@ -60,7 +60,6 @@ endif()
 if(WIN32)
   target_compile_definitions(
     rhlib PUBLIC
-    NOMINMAX                # disable min() and max() defines in Windows.h
     _CRT_SECURE_NO_WARNINGS
   )
 endif()
