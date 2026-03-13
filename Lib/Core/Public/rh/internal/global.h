@@ -8,7 +8,7 @@
 #include <rh/c/rhlib.h>
 
 #ifdef _WIN32
-#include <Windows.h>
+#include "win32-wrapper.h"
 #endif // #ifdef _WIN32
 
 #else // ^^^ #ifndef __RHLIB_GLOBAL_INCLUDED
