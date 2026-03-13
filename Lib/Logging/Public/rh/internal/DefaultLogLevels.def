@@ -1,0 +1,6 @@
+LOG_LEVEL(Verbose)
+LOG_LEVEL(Debug)
+LOG_LEVEL(Info)
+LOG_LEVEL(Warning)
+LOG_LEVEL(Error)
+LOG_LEVEL(Fatal)
