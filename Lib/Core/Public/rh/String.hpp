@@ -42,7 +42,7 @@ struct Encoding {
 
   /**
    * Decodes single codepoint from a given pointer. Pointer is adjusted to point to the next
-   * character. If "charPtr" pointer to the end of the string (null-terminator), then 0 is returned
+   * character. If "charPtr" points to the end of the string (null-terminator), then 0 is returned
    * and pointer is not adjusted. If "charPtr" points to an invalid sequence, 0xFFFD is retuned.
    */
   static unicode_t ToUnicode(const ChT*& charPtr) noexcept;
