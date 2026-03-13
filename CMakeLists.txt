@@ -101,7 +101,6 @@ endforeach()
 FetchContent_MakeAvailable(fmtlib)
 target_link_libraries(rhlib PUBLIC fmt::fmt)
 
-# Include tests only when building as standalone project
-if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+if(RHLIB_ROOT_PROJECT)
   add_subdirectory("tests")
 endif()
